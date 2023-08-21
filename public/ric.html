@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+</body>
+<script>
+    function sleep(duration){
+        let start=Date.now()
+        while(start+duration>Date.now()){
+        }
+    }
+    const works=[
+        ()=>{
+            console.log('A1开始');
+            sleep(10);
+            console.log('A1结束');
+        },
+        ()=>{ 
+            console.log('B1开始');
+            sleep(50);
+            console.log('B1结束');
+        },
+        ()=>{ 
+            console.log('C1开始');
+            sleep(50);
+            console.log('C1结束');
+        },
+        ()=>{
+            console.log('C2开始');
+            sleep(200);
+            console.log('C2结束');
+        },
+        ()=>{ 
+            console.log('B2开始');
+            sleep(10);
+            console.log('B2结束');
+        }
+    ]
+    function performUnitOfWork(){
+        let work=works.shift()
+        work()
+    }
+    function workLoop(deadLine){
+        console.log('本帧剩余时间：',deadLine.timeRemaining(),"ms");
+        while((deadLine.timeRemaining()>0||deadLine.didTimeOut)&&works.length){
+            performUnitOfWork()
+        }
+        if(works.length){ //当前还有任务没执行完，但是已经没有时间了
+            console.log(`只剩下${deadLine.timeRemaining()}ms,等待下次调度`);
+            requestIdleCallback(workLoop)
+        }
+    }
+    requestIdleCallback(workLoop,{timeout:1000})
+</script>
+</html>

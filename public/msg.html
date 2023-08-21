@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        let channel=new MessageChannel();
+        let port1=channel.port1;
+        let port2=channel.port2;
+        let activeFrameTime=1000/144 //一帧的截止时间
+        let pendingCallback;
+        let timeRemaining=()=>frameDeadLine-performance.now()
+        port2.onmessage=function(){
+            let currentTime=performance.now()
+            // 如果帧的截止时间小于当前时间，说明过期了
+            let didTimeOut=frameDeadLine<=currentTime
+            if(didTimeOut||timeRemaining()>0){
+                pendingCallback&&pendingCallback({didTimeOut,timeRemaining})
+            }
+        }
+        
+        window.requestIdleCallback=(callback,options)=>{
+            requestAnimationFrame((rafTime)=>{
+                console.log('rafTime:',rafTime);
+                frameDeadLine=rafTime+activeFrameTime 
+                pendingCallback=callback
+                // 发消息相当于执行添加一个宏任务任务
+                port1.postMessage('p1向p2发送消息')
+            })
+        }
+        window.requestIdleCallback(()=>{})
+    </script>
+</body>
+</html>
